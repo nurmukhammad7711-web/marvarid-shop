@@ -19,10 +19,9 @@ BOT_TOKEN = os.environ.get("BOT_TOKEN")
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 bot = telebot.TeleBot(BOT_TOKEN, threaded=False)
 
-# ----------------- 2. FastAPI ИЛОВАСИНИ ЯРАТИШ (Муҳим кетма-кетлик) -----------------
+# ----------------- 2. FastAPI ИЛОВАСИНИ ЯРАТИШ -----------------
 app = FastAPI()
 
-# Веб-саҳифа муаммосиз ишлаши учун CORS созламалари
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -31,50 +30,53 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Вақтинчалик админ суҳбат ҳолатини сақлаш
 user_states = {}
 
-# ----------------- 3. FASTAPI: WEB APP УЧУН API -----------------
+# ----------------- 3. FASTAPI: WEB APP УЧУН API (ДИНАМИК СОЗЛАНДИ) -----------------
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root():
-    with open("index.html", "r", encoding="utf-8") as f:
-        return f.read()
+    try:
+        with open("index.html", "r", encoding="utf-8") as f:
+            return f.read()
+    except Exception:
+        return "index.html topilmadi."
 
-# Маҳсулотларни базадан олиш API
+# Маҳсулотларни олиш API
 @app.get("/api/products")
 async def get_products():
     try:
         response = supabase.table("products").select("*").order("created_at", desc=True).execute()
         return response.data
     except Exception as e:
-        return {"error": str(e)}
+        print(f"Products fetch error: {e}")
+        return []
 
-# Банерни базадан олиш API
+# Банерни олиш API
 @app.get("/api/banner")
 async def get_banner():
     try:
         response = supabase.table("banner").select("*").eq("id", 1).execute()
         if response.data:
             return response.data[0]
-        return {}
+        return {"title": "MARVARID STORE", "subtitle": "Haftalik yangilanishlar"}
     except Exception as e:
-        return {"error": str(e)}
+        print(f"Banner fetch error: {e}")
+        return {"title": "MARVARID STORE", "subtitle": "Haftalik yangilanishlar"}
 
 
-# ----------------- 4. TELEGRAM BOT: АДМИН ПАНЕЛ ВА РОЛЛАР -----------------
+# ----------------- 4. TELEGRAM BOT LOGIKASI -----------------
 
-# Ролни текшириш функцияси
 def get_user_role(telegram_id):
     try:
         res = supabase.table("users").select("role").eq("telegram_id", telegram_id).execute()
         if res.data:
             return res.data[0]['role']
         return None
-    except Exception:
+    except Exception as e:
+        print(f"Role checking error: {e}")
         return None
 
-# Асосий клавиатуралар
 def get_main_keyboard(role):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
     if role == 'owner':
@@ -91,6 +93,7 @@ def handle_start(message):
     role = get_user_role(uid)
     
     if not role:
+        # Агар оддий мижоз бўлса, Render'даги реал сайт манзилини очиш
         bot.reply_to(message, "Assalomu alaykum! Siz \"Marvarid\" do'koni botidasiz. Do'konni ko'rish uchun quyidagi tugmani bosing.", 
                      reply_markup=types.InlineKeyboardMarkup().add(
                          types.InlineKeyboardButton("🛒 Do'konni ochish", web_app=types.WebAppInfo(url="https://marvarid-shop.onrender.com"))
@@ -111,7 +114,6 @@ def manage_admins(message):
     uid = message.from_user.id
     if get_user_role(uid) != 'owner':
         return
-    
     markup = types.InlineKeyboardMarkup(row_width=1)
     markup.add(
         types.InlineKeyboardButton("➕ Yangi admin qo'shish", callback_data="add_admin"),
@@ -124,39 +126,40 @@ def callback_admins(call):
     uid = call.from_user.id
     if get_user_role(uid) != 'owner':
         return
-    
     if call.data == "add_admin":
         user_states[uid] = {"state": "waiting_admin_id"}
-        bot.send_message(call.message.chat.id, "Yangi admin qo'shish uchun uning Telegram ID raqamini yuboring (Masalan: 123456789):")
+        bot.send_message(call.message.chat.id, "Yangi admin qo'shish uchun uning Telegram ID raqamini yuboring:")
     elif call.data == "block_admin":
         user_states[uid] = {"state": "waiting_block_id"}
         bot.send_message(call.message.chat.id, "Bloklamoqchi bo'lgan adminning Telegram ID raqamini yuboring:")
 
 
-# ---- АДМИН МЕНЮСИ: ЯНГИ ТОВАР ҚЎШИШ (FSM) ----
+# ---- АДМИН МЕНЮСИ: ЯНГИ ТОВАР ҚЎШИШ ----
 @bot.message_handler(func=lambda msg: msg.text == "➕ Yangi mahsulot")
 def add_product_start(message):
     uid = message.from_user.id
-    role = get_user_role(uid)
-    if role not in ['owner', 'admin']:
+    if get_user_role(uid) not in ['owner', 'admin']:
         return
-
     user_states[uid] = {"state": "waiting_product_name", "images": []}
-    bot.send_message(message.chat.id, "Yangi mahsulot nomini yuboring (Masalan: Premium turk ko'ylagi):")
+    bot.send_message(message.chat.id, "Yangi mahsulot nomini yuboring:")
 
-# ---- БАНЕРНИ ЯНГИЛАШНИ БОШЛАШ ----
+@bot.message_handler(func=lambda msg: msg.text == "📦 Do'konni ko'rish")
+def view_store_btn(message):
+    bot.send_message(message.chat.id, "🛒 Do'konni ochish uchun quyidagi tugmani bosing:", 
+                     reply_markup=types.InlineKeyboardMarkup().add(
+                         types.InlineKeyboardButton("🛒 Do'konni ochish", web_app=types.WebAppInfo(url="https://marvarid-shop.onrender.com"))
+                     ))
+
 @bot.message_handler(func=lambda msg: msg.text == "🖼 Bannerni yangilash")
 def banner_update_start(message):
     uid = message.from_user.id
-    role = get_user_role(uid)
-    if role not in ['owner', 'admin']:
+    if get_user_role(uid) not in ['owner', 'admin']:
         return
-
     user_states[uid] = {"state": "waiting_banner_title"}
-    bot.send_message(message.chat.id, "Yangi Banner sarlavhasini (Title) yuboring (Masalan: YANGI TO'PLAM yoki AKSIYA 20%):")
+    bot.send_message(message.chat.id, "Yangi Banner sarlavhasini (Title) yuboring:")
 
 
-# ---- РАСМЛАРНИ SUPABASE STORAGE'ГА ЮКЛАШ ТИЗИМИ ----
+# ---- РАСМЛАРНИ ЮКЛАШ ТИЗИМИ ----
 @bot.message_handler(content_types=['photo'])
 def handle_photo(message):
     uid = message.from_user.id
@@ -165,7 +168,6 @@ def handle_photo(message):
         return
 
     state = state_data["state"]
-
     file_info = bot.get_file(message.photo[-1].file_id)
     downloaded_file = bot.download_file(file_info.file_path)
     file_name = f"{message.photo[-1].file_id}.jpg"
@@ -181,7 +183,7 @@ def handle_photo(message):
         
         if state == "waiting_product_images":
             user_states[uid]["images"].append(public_url)
-            bot.send_message(message.chat.id, f"Rasm muvaffaqiyatli yuklandi! 📸 (Jami: {len(user_states[uid]['images'])} ta rasm). Yana rasm yuborishingiz mumkin.")
+            bot.send_message(message.chat.id, f"Rasm yuklandi! 📸 (Jami: {len(user_states[uid]['images'])} ta). Yana rasm yuboring yoki 'TUGATISH' deb yozing.")
         
         elif state == "waiting_banner_image":
             supabase.table("banner").update({
@@ -190,14 +192,13 @@ def handle_photo(message):
                 "image_url": public_url
             }).eq("id", 1).execute()
             
-            bot.send_message(message.chat.id, "Banner muvaffaqiyatli yangilandi! 🖼✅", reply_markup=get_main_keyboard(get_user_role(uid)))
+            bot.send_message(message.chat.id, "Banner yangilandi! 🖼✅", reply_markup=get_main_keyboard(get_user_role(uid)))
             user_states.pop(uid, None)
 
     except Exception as e:
-        bot.send_message(message.chat.id, f"Rasmni saqlashda xatolik yuz berdi: {str(e)}")
+        bot.send_message(message.chat.id, f"Rasmni saqlashda xatolik: {str(e)}")
 
 
-# Матнли хабарларни қабул қилиш ва ҳолатга қараб ишлатиш
 @bot.message_handler(func=lambda msg: True)
 def handle_all_messages(message):
     uid = message.from_user.id
@@ -213,7 +214,7 @@ def handle_all_messages(message):
         try:
             new_admin_id = int(message.text)
             supabase.table("users").insert({"telegram_id": new_admin_id, "name": "Yangi Admin", "role": "admin"}).execute()
-            bot.send_message(message.chat.id, f"Muvaffaqiyatli! ID: {new_admin_id} bo'lgan foydalanuvchi Admin etib tayinlandi. ✅")
+            bot.send_message(message.chat.id, f"ID: {new_admin_id} Admin etib tayinlandi. ✅")
         except Exception as e:
             bot.send_message(message.chat.id, f"Xatolik: {str(e)}")
         user_states.pop(uid, None)
@@ -222,7 +223,7 @@ def handle_all_messages(message):
         try:
             block_id = int(message.text)
             supabase.table("users").update({"role": "blocked"}).eq("telegram_id", block_id).execute()
-            bot.send_message(message.chat.id, f"Foydalanuvchi (ID: {block_id}) muvaffaqiyatli bloklandi. 🚫")
+            bot.send_message(message.chat.id, f"ID: {block_id} bloklandi. 🚫")
         except Exception as e:
             bot.send_message(message.chat.id, f"Xatolik: {str(e)}")
         user_states.pop(uid, None)
@@ -230,7 +231,7 @@ def handle_all_messages(message):
     elif state == "waiting_product_name":
         user_states[uid]["name"] = message.text
         user_states[uid]["state"] = "waiting_product_price"
-        bot.send_message(message.chat.id, f"Mahsulot nomi: \"{message.text}\" qabul qilindi.\nEndi narxini faqat raqamlarda kiriting (Masalan: 450000):")
+        bot.send_message(message.chat.id, "Narxini kiriting (faqat raqamda):")
 
     elif state == "waiting_product_price":
         try:
@@ -240,28 +241,26 @@ def handle_all_messages(message):
             
             markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
             markup.add("Abaya & Hijob", "Ko'ylaklar", "Ro'mol & Sharflar")
-            bot.send_message(message.chat.id, "Mahsulot kategoriyasini quyidagi tugmalardan tanlang:", reply_markup=markup)
+            bot.send_message(message.chat.id, "Kategoriyani tanlang:", reply_markup=markup)
         except ValueError:
-            bot.send_message(message.chat.id, "Iltimos, narxni faqat raqamlarda kiriting!")
+            bot.send_message(message.chat.id, "Faqat raqam kiriting!")
 
     elif state == "waiting_product_category":
         cat_map = {"Abaya & Hijob": "hijab", "Ko'ylaklar": "dress", "Ro'mol & Sharflar": "scarf"}
-        category = cat_map.get(message.text, "hijab")
-        user_states[uid]["category"] = category
+        user_states[uid]["category"] = cat_map.get(message.text, "hijab")
         user_states[uid]["state"] = "waiting_product_desc"
         bot.send_message(message.chat.id, "Mahsulot ta'rifini (описание) yuboring:")
 
     elif state == "waiting_product_desc":
         user_states[uid]["desc"] = message.text
         user_states[uid]["state"] = "waiting_product_images"
-        bot.send_message(message.chat.id, "Endi mahsulot rasmini yuboring (Bir nechta yuborsangiz ham bo'ladi, tugatgach 'TUGATISH' deb yozing yoki tugmani bosing):", 
+        bot.send_message(message.chat.id, "Rasm юборинг ва тугатгач 'TUGATISH' деб ёзинг:", 
                          reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).add("TUGATISH"))
 
     elif state == "waiting_product_images" and message.text == "TUGATISH":
         if not user_states[uid]["images"]:
-            bot.send_message(message.chat.id, "Iltimos, kamida bitta rasm yuboring!")
+            bot.send_message(message.chat.id, "Kamida bitta rasm yuboring!")
             return
-        
         try:
             supabase.table("products").insert({
                 "name": user_states[uid]["name"],
@@ -270,39 +269,35 @@ def handle_all_messages(message):
                 "images": user_states[uid]["images"],
                 "description": user_states[uid]["desc"]
             }).execute()
-            bot.send_message(message.chat.id, "Yangi mahsulot muvaffaqiyatli qo'shildi va Web App saytida paydo bo'ldi! 🎉✅", 
-                             reply_markup=get_main_keyboard(role))
+            bot.send_message(message.chat.id, "Mahsulot muvaffaqiyatli qo'shildi! 🎉", reply_markup=get_main_keyboard(role))
         except Exception as e:
-            bot.send_message(message.chat.id, f"Bazaga yozishda xatolik: {str(e)}", reply_markup=get_main_keyboard(role))
-        
+            bot.send_message(message.chat.id, f"Xatolik: {str(e)}", reply_markup=get_main_keyboard(role))
         user_states.pop(uid, None)
 
     elif state == "waiting_banner_title":
         user_states[uid]["banner_title"] = message.text
         user_states[uid]["state"] = "waiting_banner_subtitle"
-        bot.send_message(message.chat.id, "Bannerning ikkinchi qismini (subtitle) yuboring (Masalan: Haftalik yangilanishlar):")
+        bot.send_message(message.chat.id, "Banner subtitle қисмини юборинг:")
 
     elif state == "waiting_banner_subtitle":
         user_states[uid]["banner_subtitle"] = message.text
         user_states[uid]["state"] = "waiting_banner_image"
-        bot.send_message(message.chat.id, "Banner uchun yangi fon rasmini yuboring:")
+        bot.send_message(message.chat.id, "Banner учун расм юборинг:")
 
 
-# ----------------- 5. БОТНИ АЛОҲИДА ОҚИМДА ИШГА ТУШИРИШ (Polling) -----------------
+# ----------------- 5. БОТНИ ИШГА ТУШИРИШ (Polling) -----------------
 def run_bot():
     try:
         bot.remove_webhook()
         time.sleep(1)
-    except Exception as e:
-        print(f"Webhook тозалашда хатолик: {e}")
-        
+    except Exception:
+        pass
     print("Bot polling rejimida muvaffaqiyatli ishga tushdi...")
     bot.infinity_polling(skip_pending=True, timeout=20, long_polling_timeout=10)
 
 bot_thread = threading.Thread(target=run_bot)
 bot_thread.daemon = True
 bot_thread.start()
-
 
 if __name__ == "__main__":
     import uvicorn
