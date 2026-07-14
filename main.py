@@ -307,13 +307,25 @@ def banner_update_start(message):
 
 
 # Webhook уланишини созлаш
-@app.on_event("startup")
-async def startup_event():
-    # Render манзилига мослаб вебҳук улаш
-    webhook_url = f"https://{SUPABASE_URL.replace('.supabase.co', '')}-shop.onrender.com/webhook/{BOT_TOKEN}"
-    bot.remove_webhook()
-    bot.set_webhook(url=webhook_url)
+import threading
+import time
 
+def run_bot():
+    # Эски вебҳук созламаларини тозалаш
+    try:
+        bot.remove_webhook()
+        time.sleep(1)
+    except Exception as e:
+        print(f"Webhook тозалашда хатолик: {e}")
+        
+    print("Bot polling rejimida muvaffaqiyatli ishga tushdi...")
+    # Бот доимий ишлаб туриши ва хатоликларда тўхтаб қолмаслиги учун
+    bot.infinity_polling(skip_pending=True, timeout=20, long_polling_timeout=10)
+
+# Бот FastAPI (веб-сайт) ишига халақит бермаслиги учун уни алоҳида оқимда (Thread) ишга туширамиз
+bot_thread = threading.Thread(target=run_bot)
+bot_thread.daemon = True
+bot_thread.start()
 
 if __name__ == "__main__":
     import uvicorn
