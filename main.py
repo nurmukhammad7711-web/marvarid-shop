@@ -74,22 +74,20 @@ async def get_banner():
 
 # ----------------- 4. TELEGRAM BOT LOGIKASI -----------------
 def get_user_role(telegram_id):
-    try:
-        # Строго переводим ID в число (int), чтобы совпало с BIGINT в базе
-        user_id_int = int(telegram_id)
+    # 1. АСОСИЙ ХЎЖАЙИН УЧУН 100% КАФОЛАТ (Базани айланиб ўтамиз)
+    if str(telegram_id) == "38842171" or telegram_id == 38842171:
+        return 'owner'
         
+    # 2. Бошқа ишчи/админлар учун базадан текширамиз
+    try:
+        user_id_int = int(telegram_id)
         res = supabase.table("users").select("role").eq("telegram_id", user_id_int).execute()
         
         if res.data and len(res.data) > 0:
             return res.data[0]['role']
-        
-        # Если данные пустые (RLS блокирует или нет совпадений)
-        print(f"ВНИМАНИЕ: Запрос прошел, но база вернула пустой ответ для ID {user_id_int}")
         return None
-        
     except Exception as e:
-        # Теперь мы увидим реальную причину в логах Render!
-        print(f"КРИТИЧЕСКАЯ ОШИБКА БАЗЫ ДАННЫХ: {str(e)}")
+        print(f"Xatolik: {e}")
         return None
 
 def get_main_keyboard(role):
