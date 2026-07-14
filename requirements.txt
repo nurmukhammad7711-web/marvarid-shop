@@ -1,4 +1,5 @@
 fastapi
 uvicorn
-gspread
-google-auth
+pyTelegramBotAPI
+supabase
+requests
