@@ -198,18 +198,22 @@ def handle_all_messages(message):
 
     if state == "waiting_admin_id" and role == "owner":
         try:
-            new_id = int(message.text)
+            # Бўш жойларни (пробелларни) тозалаб, фақат тоза рақамни оламиз
+            new_id = int(message.text.replace(" ", "").strip())
             supabase.table("users").insert({"telegram_id": new_id, "name": "Admin", "role": "admin"}).execute()
-            bot.send_message(message.chat.id, f"Muvaffaqiyatli! Admin qo'shildi. ✅")
-        except: bot.send_message(message.chat.id, "Xato: ID raqam notog'ri yoki allaqachon bor.")
+            bot.send_message(message.chat.id, f"Muvaffaqiyatli! {new_id} ID raqamli foydalanuvchi Admin etib tayinlandi. ✅")
+        except Exception as e:
+            # Агар хато бўлса, энди бот аниқ сабабини чиқариб беради (масалан, базада борлигини)
+            bot.send_message(message.chat.id, f"Tizim xatoligi yuz berdi:\n{str(e)}")
         user_states.pop(uid, None)
 
     elif state == "waiting_block_id" and role == "owner":
         try:
-            block_id = int(message.text)
+            block_id = int(message.text.replace(" ", "").strip())
             supabase.table("users").update({"role": "blocked"}).eq("telegram_id", block_id).execute()
-            bot.send_message(message.chat.id, f"Bloklandi. 🚫")
-        except: bot.send_message(message.chat.id, "Xato yuz berdi.")
+            bot.send_message(message.chat.id, f"Foydalanuvchi ({block_id}) bloklandi. 🚫")
+        except Exception as e:
+            bot.send_message(message.chat.id, f"Tizim xatoligi yuz berdi:\n{str(e)}")
         user_states.pop(uid, None)
 
     elif state == "waiting_product_name":
