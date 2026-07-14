@@ -9,18 +9,15 @@ from supabase import create_client, Client
 import telebot
 from telebot import types
 
-# ----------------- COЗЛАШЛАР (СОХРАНИТЕ СВОИ КЛЮЧИ) -----------------
-# Render muhitidan (Environment) yoki to'g'ridan-to'g'ri shu yerga yozish mumkin:
-SUPABASE_URL = "https://gyjozjcekciwowekdvrv.supabase.co"
-SUPABASE_KEY = "Sizning_Secret_Key_Shu_Yerdan_Boshlanadi..." # <--- Секрет калитингизни тўлиқ ёзинг
-
-BOT_TOKEN = "Sizning_Bot_Tokeningiz..." # <--- BotFather берган токенни тўлиқ ёзинг
+# ----------------- COЗЛАШЛАР (СЕРВЕР МУҲИТИДАН ОЛИШ) -----------------
+# Энди калитлар код ичида очиқ ёзилмайди, балки сервер тизимидан ўқиб олинади
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://gyjozjcekciwowekdvrv.supabase.co")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
+BOT_TOKEN = os.environ.get("BOT_TOKEN")
 
 # Базага уланиш
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 bot = telebot.TeleBot(BOT_TOKEN, threaded=False)
-
-app = FastAPI()
 
 # Веб-саҳифа муаммосиз ишлаши учун CORS созламалари
 app.add_middleware(
