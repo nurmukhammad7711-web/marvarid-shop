@@ -98,14 +98,14 @@ def handle_start(message):
     role = get_user_role(uid)
     
     if not role:
-        bot.reply_to(message, "Assalomu alaykum! Siz \"Marvarid\" do'koni botidasiz.", 
+        bot.send_message(message.chat.id, "Assalomu alaykum! Siz \"Marvarid\" do'koni botidasiz.", 
                      reply_markup=types.InlineKeyboardMarkup().add(
                          types.InlineKeyboardButton("🛒 Do'konni ochish", web_app=types.WebAppInfo(url="https://marvarid-shop.onrender.com"))
                      ))
         return
 
     if role == 'blocked':
-        bot.reply_to(message, "Sizning huquqingiz cheklangan (Blocked).")
+        bot.send_message(message.chat.id, "Sizning huquqingiz cheklangan (Blocked).")
         return
 
     bot.send_message(message.chat.id, f"Xush kelibsiz, {message.from_user.first_name}!\nTelefon orqali do'konni boshqarishingiz mumkin.", 
