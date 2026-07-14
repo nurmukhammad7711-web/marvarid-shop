@@ -1,74 +1,383 @@
 <!DOCTYPE html>
-<html>
+<html lang="uz">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Marvarid | Ayollar kiyimi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marvarid | Premium Store</title>
+    <!-- Telegram Web App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Tailwind CSS (Дизайнни тез ва чиройли қилиш учун) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Иконалар учун FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
-            background: var(--tg-theme-secondary-bg-color, #f4f4f5); 
-            color: var(--tg-theme-text-color, #000000);
-            margin: 0; 
-            padding: 15px; 
+        /* Telegram тизим рангларини мослаштириш */
+        body {
+            background-color: #0b0f19;
+            color: #f8fafc;
+            -webkit-tap-highlight-color: transparent;
         }
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .header h2 { margin: 0 0 5px 0; font-size: 22px; }
-        .header p { margin: 0; font-size: 14px; color: #666; }
-        .grid { 
-            display: grid; 
-            grid-template-columns: 1fr 1fr; 
-            gap: 12px; 
-        }
-        .card { 
-            background: var(--tg-theme-bg-color, #ffffff); 
-            border-radius: 12px; 
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            display: flex;
-            flex-direction: column;
-        }
-        .card img { 
-            width: 100%; 
-            height: 180px; 
-            object-fit: cover; 
-            background: #eee;
-        }
-        .card-content { padding: 10px; display: flex; flex-direction: column; flex-grow: 1; }
-        .title { font-weight: 600; font-size: 14px; margin: 0 0 5px 0; line-height: 1.2; }
-        .desc { font-size: 11px; color: #888; margin: 0 0 8px 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .price { font-weight: bold; color: var(--tg-theme-button-color, #3390ec); margin-bottom: 10px; font-size: 15px; }
-        button { 
-            background: var(--tg-theme-button-color, #3390ec); 
-            color: var(--tg-theme-button-text-color, #ffffff); 
-            border: none; 
-            padding: 8px; 
-            width: 100%; 
-            border-radius: 8px; 
-            font-weight: 600;
-            margin-top: auto;
-            cursor: pointer;
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
         }
     </style>
 </head>
-<body>
-    <div class="header">
-        <h2>💎 Marvarid</h2>
-        <p>Olmalik, "Fayz Baraka" 78-do'kon</p>
-        <p style="font-size: 12px; color: #22c55e;">Uzum Nasiya mavjud</p>
+<body class="font-sans antialiased select-none pb-24">
+
+    <!-- БОШ САҲИФА (HOME) -->
+    <div id="tab-home" class="tab-content">
+        <!-- Шапка -->
+        <div class="px-4 pt-4 pb-2 flex justify-between items-center">
+            <div>
+                <h1 class="text-xl font-bold tracking-wide text-white">💎 MARVARID</h1>
+                <p class="text-xs text-slate-400">Olmaliq, "Fayz Baraka" 78-do'kon</p>
+            </div>
+            <div class="bg-emerald-500/10 text-emerald-400 text-xs px-2.5 py-1 rounded-full font-semibold border border-emerald-500/20">
+                Uzum Nasiya
+            </div>
+        </div>
+
+        <!-- Реклама Банери (Слайдер) -->
+        <div class="px-4 my-3">
+            <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-700 h-32 flex items-center justify-between p-5">
+                <div class="z-10">
+                    <span class="text-xs font-bold uppercase tracking-widest text-blue-200">Yangi To'plam</span>
+                    <h2 class="text-lg font-black text-white mt-1">YANGI KOLLEKSIYA</h2>
+                    <p class="text-[10px] text-blue-100 mt-1">Haftalik yangilanishlar</p>
+                </div>
+                <i class="fa-solid fa-gem text-6xl text-white/10 absolute right-4 bottom-2"></i>
+            </div>
+        </div>
+
+        <!-- Категориялар (Горизонтал скролл) -->
+        <div class="flex gap-2 overflow-x-auto px-4 py-2 hide-scrollbar">
+            <button onclick="filterCategory('all')" class="cat-btn bg-blue-600 text-white text-xs font-medium px-4 py-2 rounded-full whitespace-nowrap transition-all">Barchasi</button>
+            <button onclick="filterCategory('hijab')" class="cat-btn bg-slate-800 text-slate-300 text-xs font-medium px-4 py-2 rounded-full whitespace-nowrap transition-all">Abaya & Hijob</button>
+            <button onclick="filterCategory('dress')" class="cat-btn bg-slate-800 text-slate-300 text-xs font-medium px-4 py-2 rounded-full whitespace-nowrap transition-all">Ko'ylaklar</button>
+            <button onclick="filterCategory('scarf')" class="cat-btn bg-slate-800 text-slate-300 text-xs font-medium px-4 py-2 rounded-full whitespace-nowrap transition-all">Ro'mol & Sharflar</button>
+        </div>
+
+        <!-- Маҳсулотлар Сеткаси (2 тадан устунда) -->
+        <div class="grid grid-cols-2 gap-3 px-4 mt-3" id="products-grid">
+            <!-- Маҳсулотлар JS орқали динамик юкланади -->
+        </div>
     </div>
-    
-    <div class="grid">
-        <!-- PRODUCTS_PLACEHOLDER -->
+
+    <!-- ИЗБРАННОЕ ТАБИ -->
+    <div id="tab-favorites" class="tab-content hidden p-4">
+        <h2 class="text-lg font-bold mb-4">Saralanganlar</h2>
+        <div id="favorites-list" class="grid grid-cols-2 gap-3">
+            <!-- Саралган маҳсулотлар -->
+        </div>
+        <div id="fav-empty" class="text-center py-12 text-slate-500">
+            <i class="fa-regular fa-heart text-5xl mb-3"></i>
+            <p class="text-sm">Saralangan mahsulotlar yo'q</p>
+        </div>
+    </div>
+
+    <!-- САВАТ (CART) ТАБИ -->
+    <div id="tab-cart" class="tab-content hidden p-4">
+        <h2 class="text-lg font-bold mb-4">Savatingiz</h2>
+        <div id="cart-items" class="space-y-3">
+            <!-- Саватдаги товарлар -->
+        </div>
+        
+        <div id="cart-empty" class="text-center py-12 text-slate-500">
+            <i class="fa-solid fa-basket-shopping text-5xl mb-3"></i>
+            <p class="text-sm">Savat bo'sh. Mahsulot qo'shing</p>
+        </div>
+
+        <div id="cart-summary" class="mt-6 border-t border-slate-800 pt-4 hidden">
+            <div class="flex justify-between text-sm text-slate-400 mb-2">
+                <span>Mahsulotlar:</span>
+                <span id="summary-subtotal">0 so'm</span>
+            </div>
+            <div class="flex justify-between text-sm text-slate-400 mb-4">
+                <span>Yetkazib berish:</span>
+                <span class="text-emerald-400 font-medium">Yetkazib beriladi</span>
+            </div>
+            <div class="flex justify-between text-base font-bold text-white mb-6 border-t border-slate-800 pt-3">
+                <span>Jami summa:</span>
+                <span id="summary-total" class="text-blue-500">0 so'm</span>
+            </div>
+            <button onclick="checkoutOrder()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl transition-all flex justify-between px-5 items-center">
+                <span>Buyurtma berish</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- ПРОФИЛЬ ТАБИ -->
+    <div id="tab-profile" class="tab-content hidden p-4">
+        <div class="flex items-center gap-4 mb-6 bg-slate-900/50 p-4 rounded-2xl border border-slate-800">
+            <div class="w-16 h-16 rounded-full bg-blue-600/20 flex items-center justify-center border-2 border-blue-500">
+                <i class="fa-solid fa-user text-2xl text-blue-500"></i>
+            </div>
+            <div>
+                <h3 id="user-name" class="font-bold text-lg">Mijoz</h3>
+                <p id="user-username" class="text-xs text-slate-400">@username</p>
+            </div>
+        </div>
+
+        <div class="space-y-2">
+            <a href="https://t.me/marvarid_almalyk" target="_blank" class="flex justify-between items-center p-4 bg-slate-900/40 rounded-xl border border-slate-800/60 text-sm">
+                <span class="flex items-center gap-3"><i class="fa-solid fa-headset text-blue-500"></i> Qo'llab-quvvatlash</span>
+                <i class="fa-solid fa-chevron-right text-slate-600"></i>
+            </a>
+            <div class="p-4 bg-slate-900/40 rounded-xl border border-slate-800/60 text-xs text-slate-400 space-y-2">
+                <p class="font-bold text-slate-300">Do'kon ma'lumotlari:</p>
+                <p><i class="fa-solid fa-location-dot mr-1"></i> Manzil: Olmaliq sh., Fayz Baraka bozori, 78-do'kon</p>
+                <p><i class="fa-solid fa-phone mr-1"></i> Tel: 93 601 01 95</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ПАСТКИ НАВИГАЦИЯ МЕНЮСИ (BOTTOM NAVIGATION BAR) -->
+    <div class="fixed bottom-0 left-0 right-0 bg-[#0d121f]/95 backdrop-blur-md border-t border-slate-800/80 px-6 py-2.5 flex justify-between items-center z-50">
+        <button onclick="switchTab('home')" id="nav-home" class="nav-btn flex flex-col items-center gap-1 text-blue-500">
+            <i class="fa-solid fa-house text-lg"></i>
+            <span class="text-[10px] font-medium">Asosiy</span>
+        </button>
+        <button onclick="switchTab('favorites')" id="nav-favorites" class="nav-btn flex flex-col items-center gap-1 text-slate-400">
+            <i class="fa-solid fa-heart text-lg"></i>
+            <span class="text-[10px] font-medium">Saralanganlar</span>
+        </button>
+        <button onclick="switchTab('cart')" id="nav-cart" class="nav-btn flex flex-col items-center gap-1 text-slate-400 relative">
+            <i class="fa-solid fa-basket-shopping text-lg"></i>
+            <span class="text-[10px] font-medium">Savat</span>
+            <span id="cart-badge" class="absolute -top-1.5 -right-2 bg-blue-500 text-white text-[9px] font-extrabold px-1.5 py-0.2 rounded-full hidden">0</span>
+        </button>
+        <button onclick="switchTab('profile')" id="nav-profile" class="nav-btn flex flex-col items-center gap-1 text-slate-400">
+            <i class="fa-solid fa-user text-lg"></i>
+            <span class="text-[10px] font-medium">Profil</span>
+        </button>
     </div>
 
     <script>
-        window.Telegram.WebApp.expand();
-        window.Telegram.WebApp.ready();
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.ready();
+
+        // Профиль маълумотларини юклаш
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            document.getElementById('user-name').innerText = tg.initDataUnsafe.user.first_name || 'Mijoz';
+            document.getElementById('user-username').innerText = tg.initDataUnsafe.user.username ? '@' + tg.initDataUnsafe.user.username : '';
+        }
+
+        // Маҳсулотлар базаси (Бу ерга янги товарларни қўшишингиз мумкин)
+        const products = [
+            {
+                id: 1,
+                name: "Abaya, ximara, hidjob, ko'ylak+ro'mol",
+                price: 590000,
+                category: "hijab",
+                image: "https://i.postimg.cc/mD83Wffh/7641.jpg",
+                desc: "Abaya, ximara, hidjob komplekti. Sifatli va juda qulay."
+            },
+            {
+                id: 2,
+                name: "Klassik turk ro'moli",
+                price: 180000,
+                category: "scarf",
+                image: "https://via.placeholder.com/300x350/1e293b/ffffff?text=Rom'ol",
+                desc: "Turkiya mahsuloti, ipak aralashgan yumshoq mato."
+            },
+            {
+                id: 3,
+                name: "Muslima ayollar ko'ylagi",
+                price: 450000,
+                category: "dress",
+                image: "https://via.placeholder.com/300x350/1e293b/ffffff?text=Ko'ylak",
+                desc: "Keng bichiqli, yozgi va bahorgi fasllarga mos ko'ylak."
+            }
+        ];
+
+        let cart = [];
+        let favorites = [];
+
+        // Табларни алмаштириш функцияси
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.replace('text-blue-500', 'text-slate-400'));
+            document.getElementById(`nav-${tabId}`).classList.replace('text-slate-400', 'text-blue-500');
+        }
+
+        // Категория бўйича филтрлаш
+        function filterCategory(cat) {
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                btn.classList.replace('bg-blue-600', 'bg-slate-800');
+                btn.classList.replace('text-white', 'text-slate-300');
+            });
+            event.target.classList.replace('bg-slate-800', 'bg-blue-600');
+            event.target.classList.replace('text-slate-300', 'text-white');
+
+            renderProducts(cat);
+        }
+
+        // Маҳсулотларни экранга чиқариш
+        function renderProducts(category = 'all') {
+            const grid = document.getElementById('products-grid');
+            grid.innerHTML = '';
+
+            const filtered = category === 'all' ? products : products.filter(p => p.category === category);
+
+            filtered.forEach(p => {
+                const isFav = favorites.includes(p.id);
+                grid.innerHTML += `
+                    <div class="bg-slate-900/50 border border-slate-800/80 rounded-2xl overflow-hidden p-3 flex flex-col justify-between">
+                        <div class="relative">
+                            <img src="${p.image}" class="w-full h-44 object-cover rounded-xl" alt="${p.name}">
+                            <button onclick="toggleFavorite(${p.id})" class="absolute top-2 right-2 w-8 h-8 rounded-full bg-slate-950/60 backdrop-blur-md flex items-center justify-center">
+                                <i class="${isFav ? 'fa-solid text-red-500' : 'fa-regular text-white'} fa-heart text-xs"></i>
+                            </button>
+                        </div>
+                        <div class="mt-2.5 flex-grow">
+                            <h4 class="text-xs font-bold text-slate-200 line-clamp-2 min-h-[32px]">${p.name}</h4>
+                            <div class="text-sm font-black text-blue-400 mt-1">${p.price.toLocaleString('uz-UZ')} so'm</div>
+                        </div>
+                        <button onclick="addToCart(${p.id})" class="mt-3 w-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-basket-shopping"></i> Qo'shish
+                        </button>
+                    </div>
+                `;
+            });
+        }
+
+        // Севимлиларга қўшиш/олиб ташлаш
+        function toggleFavorite(id) {
+            if (favorites.includes(id)) {
+                favorites = favorites.filter(favId => favId !== id);
+            } else {
+                favorites.push(id);
+            }
+            renderProducts();
+            renderFavorites();
+        }
+
+        function renderFavorites() {
+            const list = document.getElementById('favorites-list');
+            const empty = document.getElementById('fav-empty');
+            list.innerHTML = '';
+
+            if (favorites.length === 0) {
+                empty.classList.remove('hidden');
+                return;
+            }
+            empty.classList.add('hidden');
+
+            const favItems = products.filter(p => favorites.includes(p.id));
+            favItems.forEach(p => {
+                list.innerHTML += `
+                    <div class="bg-slate-900/50 border border-slate-800/80 rounded-2xl overflow-hidden p-3 flex flex-col justify-between">
+                        <img src="${p.image}" class="w-full h-36 object-cover rounded-xl" alt="${p.name}">
+                        <h4 class="text-xs font-bold text-slate-200 mt-2 line-clamp-1">${p.name}</h4>
+                        <div class="text-xs font-black text-blue-400 mt-1">${p.price.toLocaleString('uz-UZ')} so'm</div>
+                        <button onclick="addToCart(${p.id})" class="mt-2 w-full bg-blue-600 text-white text-[10px] font-bold py-2 rounded-lg">Саватга</button>
+                    </div>
+                `;
+            });
+        }
+
+        // Саватга қўшиш
+        function addToCart(id) {
+            const exist = cart.find(item => item.id === id);
+            if (exist) {
+                exist.qty += 1;
+            } else {
+                const prod = products.find(p => p.id === id);
+                cart.push({ ...prod, qty: 1 });
+            }
+            updateCart();
+        }
+
+        function changeQty(id, delta) {
+            const item = cart.find(i => i.id === id);
+            if (item) {
+                item.qty += delta;
+                if (item.qty <= 0) {
+                    cart = cart.filter(i => i.id !== id);
+                }
+            }
+            updateCart();
+        }
+
+        function updateCart() {
+            const list = document.getElementById('cart-items');
+            const badge = document.getElementById('cart-badge');
+            const empty = document.getElementById('cart-empty');
+            const summary = document.getElementById('cart-summary');
+            list.innerHTML = '';
+
+            let totalQty = 0;
+            let totalPrice = 0;
+
+            cart.forEach(item => {
+                totalQty += item.qty;
+                totalPrice += item.price * item.qty;
+
+                list.innerHTML += `
+                    <div class="flex items-center gap-3 bg-slate-900/40 p-3 rounded-xl border border-slate-800/50">
+                        <img src="${item.image}" class="w-16 h-16 object-cover rounded-lg" alt="${item.name}">
+                        <div class="flex-grow">
+                            <h4 class="text-xs font-bold text-slate-200 line-clamp-1">${item.name}</h4>
+                            <div class="text-xs text-blue-400 font-bold mt-1">${(item.price * item.qty).toLocaleString('uz-UZ')} so'm</div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="changeQty(${item.id}, -1)" class="w-7 h-7 bg-slate-800 rounded-full flex items-center justify-center text-xs font-bold">-</button>
+                            <span class="text-xs font-bold w-4 text-center">${item.qty}</span>
+                            <button onclick="changeQty(${item.id}, 1)" class="w-7 h-7 bg-slate-800 rounded-full flex items-center justify-center text-xs font-bold">+</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Сават индикатори (бадж) янгиланиши
+            if (totalQty > 0) {
+                badge.innerText = totalQty;
+                badge.classList.remove('hidden');
+                empty.classList.add('hidden');
+                summary.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+                empty.classList.remove('hidden');
+                summary.classList.add('hidden');
+            }
+
+            document.getElementById('summary-subtotal').innerText = `${totalPrice.toLocaleString('uz-UZ')} so'm`;
+            document.getElementById('summary-total').innerText = `${totalPrice.toLocaleString('uz-UZ')} so'm`;
+        }
+
+        // БУЮРТМА РАСМИЙЛАШТИРИШ (ADMIN ГА ЮБОРИШ)
+        function checkoutOrder() {
+            const adminUsername = 'marvarid_almalyk'; // <--- Ўз юзернеймингизни ёзинг
+            let text = "Assalomu alaykum! Yangi buyurtma:\n\n";
+
+            cart.forEach((item, index) => {
+                text += `${index + 1}. 🛍 *${item.name}* (Soni: ${item.qty} dona) - ${(item.price * item.qty).toLocaleString('uz-UZ')} so'm\n`;
+            });
+
+            const total = cart.reduce((acc, i) => acc + (i.price * i.qty), 0);
+            text += `\n💰 Jami summa: *${total.toLocaleString('uz-UZ')} so'm*\n`;
+
+            tg.showPopup({
+                title: 'Buyurtmani tasdiqlash',
+                message: `Siz ${total.toLocaleString('uz-UZ')} so'mlik buyurtmani rasmiylashtirmoqchisiz. Administrator bilan bog'lanasizmi?`,
+                buttons: [
+                    {id: 'yes', type: 'default', text: 'Ha, bog\'lanish'},
+                    {id: 'no', type: 'destructive', text: 'Yo\'q'}
+                ]
+            }, function(buttonId) {
+                if (buttonId === 'yes') {
+                    const link = `https://t.me/${adminUsername}?text=${encodeURIComponent(text)}`;
+                    tg.openTelegramLink(link);
+                }
+            });
+        }
+
+        // Илк бор юкланганда маҳсулотларни экранга чиқариш
+        renderProducts();
     </script>
 </body>
 </html>
