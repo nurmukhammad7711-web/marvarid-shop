@@ -4,14 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Marvarid | Premium Store</title>
-    <!-- Telegram Web App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- Tailwind CSS (Дизайнни тез ва чиройли қилиш учун) -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Иконалар учун FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Telegram тизим рангларини мослаштириш */
         body {
             background-color: #0b0f19;
             color: #f8fafc;
@@ -22,7 +18,7 @@
         }
     </style>
 </head>
-<body class="font-sans antialiased select-none pb-24">
+<body class="font-sans antialiased select-none pb-24 text-slate-200">
 
     <!-- БОШ САҲИФА (HOME) -->
     <div id="tab-home" class="tab-content">
@@ -37,7 +33,7 @@
             </div>
         </div>
 
-        <!-- Реклама Банери (Слайдер) -->
+        <!-- Реклама Банери -->
         <div class="px-4 my-3">
             <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-700 h-32 flex items-center justify-between p-5">
                 <div class="z-10">
@@ -49,26 +45,24 @@
             </div>
         </div>
 
-        <!-- Категориялар (Горизонтал скролл) -->
+        <!-- Категориялар -->
         <div class="flex gap-2 overflow-x-auto px-4 py-2 hide-scrollbar">
-            <button onclick="filterCategory('all')" class="cat-btn bg-blue-600 text-white text-xs font-medium px-4 py-2 rounded-full whitespace-nowrap transition-all">Barchasi</button>
-            <button onclick="filterCategory('hijab')" class="cat-btn bg-slate-800 text-slate-300 text-xs font-medium px-4 py-2 rounded-full whitespace-nowrap transition-all">Abaya & Hijob</button>
-            <button onclick="filterCategory('dress')" class="cat-btn bg-slate-800 text-slate-300 text-xs font-medium px-4 py-2 rounded-full whitespace-nowrap transition-all">Ko'ylaklar</button>
-            <button onclick="filterCategory('scarf')" class="cat-btn bg-slate-800 text-slate-300 text-xs font-medium px-4 py-2 rounded-full whitespace-nowrap transition-all">Ro'mol & Sharflar</button>
+            <button onclick="filterCategory('all', this)" class="cat-btn bg-blue-600 text-white text-xs font-medium px-4 py-2 rounded-full whitespace-nowrap transition-all">Barchasi</button>
+            <button onclick="filterCategory('hijab', this)" class="cat-btn bg-slate-800 text-slate-300 text-xs font-medium px-4 py-2 rounded-full whitespace-nowrap transition-all">Abaya & Hijob</button>
+            <button onclick="filterCategory('dress', this)" class="cat-btn bg-slate-800 text-slate-300 text-xs font-medium px-4 py-2 rounded-full whitespace-nowrap transition-all">Ko'ylaklar</button>
+            <button onclick="filterCategory('scarf', this)" class="cat-btn bg-slate-800 text-slate-300 text-xs font-medium px-4 py-2 rounded-full whitespace-nowrap transition-all">Ro'mol & Sharflar</button>
         </div>
 
-        <!-- Маҳсулотлар Сеткаси (2 тадан устунда) -->
+        <!-- Маҳсулотлар Сеткаси -->
         <div class="grid grid-cols-2 gap-3 px-4 mt-3" id="products-grid">
-            <!-- Маҳсулотлар JS орқали динамик юкланади -->
+            <!-- Маҳсулотлар JS орқали юкланади -->
         </div>
     </div>
 
     <!-- ИЗБРАННОЕ ТАБИ -->
     <div id="tab-favorites" class="tab-content hidden p-4">
         <h2 class="text-lg font-bold mb-4">Saralanganlar</h2>
-        <div id="favorites-list" class="grid grid-cols-2 gap-3">
-            <!-- Саралган маҳсулотлар -->
-        </div>
+        <div id="favorites-list" class="grid grid-cols-2 gap-3"></div>
         <div id="fav-empty" class="text-center py-12 text-slate-500">
             <i class="fa-regular fa-heart text-5xl mb-3"></i>
             <p class="text-sm">Saralangan mahsulotlar yo'q</p>
@@ -78,9 +72,7 @@
     <!-- САВАТ (CART) ТАБИ -->
     <div id="tab-cart" class="tab-content hidden p-4">
         <h2 class="text-lg font-bold mb-4">Savatingiz</h2>
-        <div id="cart-items" class="space-y-3">
-            <!-- Саватдаги товарлар -->
-        </div>
+        <div id="cart-items" class="space-y-3"></div>
         
         <div id="cart-empty" class="text-center py-12 text-slate-500">
             <i class="fa-solid fa-basket-shopping text-5xl mb-3"></i>
@@ -118,7 +110,6 @@
                 <p id="user-username" class="text-xs text-slate-400">@username</p>
             </div>
         </div>
-
         <div class="space-y-2">
             <a href="https://t.me/marvarid_almalyk" target="_blank" class="flex justify-between items-center p-4 bg-slate-900/40 rounded-xl border border-slate-800/60 text-sm">
                 <span class="flex items-center gap-3"><i class="fa-solid fa-headset text-blue-500"></i> Qo'llab-quvvatlash</span>
@@ -132,8 +123,41 @@
         </div>
     </div>
 
-    <!-- ПАСТКИ НАВИГАЦИЯ МЕНЮСИ (BOTTOM NAVIGATION BAR) -->
-    <div class="fixed bottom-0 left-0 right-0 bg-[#0d121f]/95 backdrop-blur-md border-t border-slate-800/80 px-6 py-2.5 flex justify-between items-center z-50">
+    <!-- БАТАФСИЛ МАЪЛУМОТ ОЙНАСИ (PRODUCT DETAILS MODAL) -->
+    <div id="details-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-end justify-center transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div id="modal-container" class="bg-[#0f172a] w-full max-w-lg rounded-t-3xl p-5 border-t border-slate-800 transform translate-y-full transition-transform duration-300 overflow-y-auto max-h-[90vh]">
+            <!-- Модалкани ёпиш тугмаси -->
+            <div class="flex justify-between items-center mb-4">
+                <span id="modal-category" class="text-xs font-bold text-blue-500 uppercase tracking-widest">Kategoriya</span>
+                <button onclick="closeDetails()" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Ички Расмлар Слайдери -->
+            <div class="relative overflow-hidden rounded-2xl mb-4 bg-slate-900">
+                <div class="flex overflow-x-auto scroll-smooth snap-x snap-mandatory hide-scrollbar" id="modal-slider">
+                    <!-- Расмлар динамик юкланади -->
+                </div>
+                <div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5" id="modal-dots">
+                    <!-- Нуқталар динамик юкланади -->
+                </div>
+            </div>
+
+            <h2 id="modal-title" class="text-xl font-extrabold text-white mb-2">Mahsulot nomi</h2>
+            <div id="modal-price" class="text-2xl font-black text-blue-400 mb-4">0 so'm</div>
+            
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Tavsif</p>
+            <p id="modal-desc" class="text-sm text-slate-300 leading-relaxed mb-6">Батафсил тавсиф матни...</p>
+
+            <button id="modal-add-btn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl transition-all flex items-center justify-center gap-2">
+                <i class="fa-solid fa-basket-shopping"></i> Savatga qo'shish
+            </button>
+        </div>
+    </div>
+
+    <!-- ПАСТКИ НАВИГАЦИЯ МЕНЮСИ -->
+    <div class="fixed bottom-0 left-0 right-0 bg-[#0d121f]/95 backdrop-blur-md border-t border-slate-800/80 px-6 py-2.5 flex justify-between items-center z-40">
         <button onclick="switchTab('home')" id="nav-home" class="nav-btn flex flex-col items-center gap-1 text-blue-500">
             <i class="fa-solid fa-house text-lg"></i>
             <span class="text-[10px] font-medium">Asosiy</span>
@@ -158,44 +182,53 @@
         tg.expand();
         tg.ready();
 
-        // Профиль маълумотларини юклаш
         if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
             document.getElementById('user-name').innerText = tg.initDataUnsafe.user.first_name || 'Mijoz';
             document.getElementById('user-username').innerText = tg.initDataUnsafe.user.username ? '@' + tg.initDataUnsafe.user.username : '';
         }
 
-        // Маҳсулотлар базаси (Бу ерга янги товарларни қўшишингиз мумкин)
+        // Маҳсулотлар маълумотлар базаси (Расмларни ишчи очиқ манбаларга ўзгартирдим)
         const products = [
             {
                 id: 1,
                 name: "Abaya, ximara, hidjob, ko'ylak+ro'mol",
                 price: 590000,
                 category: "hijab",
-                image: "https://i.postimg.cc/mD83Wffh/7641.jpg",
-                desc: "Abaya, ximara, hidjob komplekti. Sifatli va juda qulay."
+                // Маҳсулот галереяси учун бир нечта расм массивда
+                images: [
+                    "https://images.unsplash.com/photo-1609357605129-26f69add5d6e?w=500&q=80",
+                    "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=500&q=80",
+                    "https://images.unsplash.com/photo-1549064482-6779ba3292fe?w=500&q=80"
+                ],
+                desc: "Юқори сифатли ва ибодат амалларини бажаришга жуда қулай бўлган комплект: Абайя, Химар ва Рўмол. Матоси ҳаво ўтказувчан, терига ботмайди ва сирпанмайди. Кундалик тақиш учун идеал танлов."
             },
             {
                 id: 2,
-                name: "Klassik turk ro'moli",
+                name: "Klassik turk ro'moli (Premium)",
                 price: 180000,
                 category: "scarf",
-                image: "https://via.placeholder.com/300x350/1e293b/ffffff?text=Rom'ol",
-                desc: "Turkiya mahsuloti, ipak aralashgan yumshoq mato."
+                images: [
+                    "https://images.unsplash.com/photo-1584030373081-f37b7bb4fa8e?w=500&q=80",
+                    "https://images.unsplash.com/photo-1618220179428-22790b461013?w=500&q=80"
+                ],
+                desc: "Туркиянинг машҳур брендлари томонидан ишлаб чиқарилган классик рўмол. Юмшоқ ипак ва пахта аралашмасидан тайёрланган бўлиб, шаклини жуда яхши сақлайди ва ранглари ювилганда хиралашмайди."
             },
             {
                 id: 3,
-                name: "Muslima ayollar ko'ylagi",
+                name: "Muslima ayollar keng ko'ylagi",
                 price: 450000,
                 category: "dress",
-                image: "https://via.placeholder.com/300x350/1e293b/ffffff?text=Ko'ylak",
-                desc: "Keng bichiqli, yozgi va bahorgi fasllarga mos ko'ylak."
+                images: [
+                    "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=500&q=80",
+                    "https://images.unsplash.com/photo-1609357605129-26f69add5d6e?w=500&q=80"
+                ],
+                desc: "Кенг ва ёпиқ бичимли ҳашаматли кўйлак. Баҳор ва ёз фасллари учун жуда мос келадиган табиий нафас олувчи матодан тикилган. Тўй ва маросимларга кийиш учун жуда ҳам нафис кўринишга эга."
             }
         ];
 
         let cart = [];
         let favorites = [];
 
-        // Табларни алмаштириш функцияси
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.getElementById(`tab-${tabId}`).classList.remove('hidden');
@@ -204,19 +237,18 @@
             document.getElementById(`nav-${tabId}`).classList.replace('text-slate-400', 'text-blue-500');
         }
 
-        // Категория бўйича филтрлаш
-        function filterCategory(cat) {
-            document.querySelectorAll('.cat-btn').forEach(btn => {
-                btn.classList.replace('bg-blue-600', 'bg-slate-800');
-                btn.classList.replace('text-white', 'text-slate-300');
+        function filterCategory(cat, btn) {
+            document.querySelectorAll('.cat-btn').forEach(b => {
+                b.classList.replace('bg-blue-600', 'bg-slate-800');
+                b.classList.replace('text-white', 'text-slate-300');
             });
-            event.target.classList.replace('bg-slate-800', 'bg-blue-600');
-            event.target.classList.replace('text-slate-300', 'text-white');
+            btn.classList.replace('bg-slate-800', 'bg-blue-600');
+            btn.classList.replace('text-slate-300', 'text-white');
 
             renderProducts(cat);
         }
 
-        // Маҳсулотларни экранга чиқариш
+        // Маҳсулотларни рўйхатга чиқариш
         function renderProducts(category = 'all') {
             const grid = document.getElementById('products-grid');
             grid.innerHTML = '';
@@ -227,13 +259,13 @@
                 const isFav = favorites.includes(p.id);
                 grid.innerHTML += `
                     <div class="bg-slate-900/50 border border-slate-800/80 rounded-2xl overflow-hidden p-3 flex flex-col justify-between">
-                        <div class="relative">
-                            <img src="${p.image}" class="w-full h-44 object-cover rounded-xl" alt="${p.name}">
-                            <button onclick="toggleFavorite(${p.id})" class="absolute top-2 right-2 w-8 h-8 rounded-full bg-slate-950/60 backdrop-blur-md flex items-center justify-center">
+                        <div class="relative cursor-pointer" onclick="openDetails(${p.id})">
+                            <img src="${p.images[0]}" class="w-full h-44 object-cover rounded-xl" alt="${p.name}">
+                            <button onclick="event.stopPropagation(); toggleFavorite(${p.id})" class="absolute top-2 right-2 w-8 h-8 rounded-full bg-slate-950/60 backdrop-blur-md flex items-center justify-center">
                                 <i class="${isFav ? 'fa-solid text-red-500' : 'fa-regular text-white'} fa-heart text-xs"></i>
                             </button>
                         </div>
-                        <div class="mt-2.5 flex-grow">
+                        <div class="mt-2.5 flex-grow cursor-pointer" onclick="openDetails(${p.id})">
                             <h4 class="text-xs font-bold text-slate-200 line-clamp-2 min-h-[32px]">${p.name}</h4>
                             <div class="text-sm font-black text-blue-400 mt-1">${p.price.toLocaleString('uz-UZ')} so'm</div>
                         </div>
@@ -245,7 +277,74 @@
             });
         }
 
-        // Севимлиларга қўшиш/олиб ташлаш
+        // БАТАФСИЛ ОЙНАНИ ОЧИШ (МОДАЛКА)
+        function openDetails(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+
+            document.getElementById('modal-category').innerText = product.category === 'hijab' ? 'Abaya & Hijob' : (product.category === 'scarf' ? 'Ro\'mol & Sharflar' : 'Ko\'ylaklar');
+            document.getElementById('modal-title').innerText = product.name;
+            document.getElementById('modal-price').innerText = `${product.price.toLocaleString('uz-UZ')} so'm`;
+            document.getElementById('modal-desc').innerText = product.desc;
+
+            // Расмлар слайдерини қуриш
+            const slider = document.getElementById('modal-slider');
+            const dotsContainer = document.getElementById('modal-dots');
+            slider.innerHTML = '';
+            dotsContainer.innerHTML = '';
+
+            product.images.forEach((imgSrc, index) => {
+                // Расмларни слайдерга жойлаш
+                slider.innerHTML += `
+                    <img src="${imgSrc}" class="w-full flex-shrink-0 snap-start object-cover h-[340px]" alt="${product.name}">
+                `;
+                // Пастки нуқталарни яратиш
+                dotsContainer.innerHTML += `
+                    <span class="w-2 h-2 rounded-full bg-white/40 transition-all duration-300 ${index === 0 ? 'bg-white !w-4' : ''}" id="dot-${index}"></span>
+                `;
+            });
+
+            // Слайд сурилганда нуқталарни янгилаш
+            slider.onscroll = () => {
+                const activeIndex = Math.round(slider.scrollLeft / slider.offsetWidth);
+                product.images.forEach((_, index) => {
+                    const dot = document.getElementById(`dot-${index}`);
+                    if (dot) {
+                        if (index === activeIndex) {
+                            dot.classList.replace('bg-white/40', 'bg-white');
+                            dot.style.width = '16px';
+                        } else {
+                            dot.classList.replace('bg-white', 'bg-white/40');
+                            dot.style.width = '8px';
+                        }
+                    }
+                });
+            };
+
+            // «Savatga qo'shish» тугмасини созлаш
+            document.getElementById('modal-add-btn').onclick = () => {
+                addToCart(product.id);
+                closeDetails();
+            };
+
+            // Модалкани кўрсатиш
+            const modal = document.getElementById('details-modal');
+            const container = document.getElementById('modal-container');
+            modal.classList.remove('pointer-events-none');
+            modal.classList.replace('opacity-0', 'opacity-100');
+            container.classList.replace('translate-y-full', 'translate-y-0');
+        }
+
+        // БАТАФСИЛ ОЙНАНИ ЁПИШ
+        function closeDetails() {
+            const modal = document.getElementById('details-modal');
+            const container = document.getElementById('modal-container');
+            modal.classList.add('pointer-events-none');
+            modal.classList.replace('opacity-100', 'opacity-0');
+            container.classList.replace('translate-y-0', 'translate-y-full');
+        }
+
+        // Севимлиларни бошқариш
         function toggleFavorite(id) {
             if (favorites.includes(id)) {
                 favorites = favorites.filter(favId => favId !== id);
@@ -271,8 +370,8 @@
             favItems.forEach(p => {
                 list.innerHTML += `
                     <div class="bg-slate-900/50 border border-slate-800/80 rounded-2xl overflow-hidden p-3 flex flex-col justify-between">
-                        <img src="${p.image}" class="w-full h-36 object-cover rounded-xl" alt="${p.name}">
-                        <h4 class="text-xs font-bold text-slate-200 mt-2 line-clamp-1">${p.name}</h4>
+                        <img src="${p.images[0]}" class="w-full h-36 object-cover rounded-xl cursor-pointer" onclick="openDetails(${p.id})" alt="${p.name}">
+                        <h4 class="text-xs font-bold text-slate-200 mt-2 line-clamp-1 cursor-pointer" onclick="openDetails(${p.id})">${p.name}</h4>
                         <div class="text-xs font-black text-blue-400 mt-1">${p.price.toLocaleString('uz-UZ')} so'm</div>
                         <button onclick="addToCart(${p.id})" class="mt-2 w-full bg-blue-600 text-white text-[10px] font-bold py-2 rounded-lg">Саватга</button>
                     </div>
@@ -280,7 +379,7 @@
             });
         }
 
-        // Саватга қўшиш
+        // Сават функциялари
         function addToCart(id) {
             const exist = cart.find(item => item.id === id);
             if (exist) {
@@ -290,6 +389,7 @@
                 cart.push({ ...prod, qty: 1 });
             }
             updateCart();
+            tg.HapticFeedback.notificationOccurred('success'); // Саватга қўшилганда телефон қисқа титрайди
         }
 
         function changeQty(id, delta) {
@@ -319,7 +419,7 @@
 
                 list.innerHTML += `
                     <div class="flex items-center gap-3 bg-slate-900/40 p-3 rounded-xl border border-slate-800/50">
-                        <img src="${item.image}" class="w-16 h-16 object-cover rounded-lg" alt="${item.name}">
+                        <img src="${item.images[0]}" class="w-16 h-16 object-cover rounded-lg" alt="${item.name}">
                         <div class="flex-grow">
                             <h4 class="text-xs font-bold text-slate-200 line-clamp-1">${item.name}</h4>
                             <div class="text-xs text-blue-400 font-bold mt-1">${(item.price * item.qty).toLocaleString('uz-UZ')} so'm</div>
@@ -333,7 +433,6 @@
                 `;
             });
 
-            // Сават индикатори (бадж) янгиланиши
             if (totalQty > 0) {
                 badge.innerText = totalQty;
                 badge.classList.remove('hidden');
@@ -349,9 +448,8 @@
             document.getElementById('summary-total').innerText = `${totalPrice.toLocaleString('uz-UZ')} so'm`;
         }
 
-        // БУЮРТМА РАСМИЙЛАШТИРИШ (ADMIN ГА ЮБОРИШ)
         function checkoutOrder() {
-            const adminUsername = 'marvarid_almalyk'; // <--- Ўз юзернеймингизни ёзинг
+            const adminUsername = 'marvarid_almalyk'; 
             let text = "Assalomu alaykum! Yangi buyurtma:\n\n";
 
             cart.forEach((item, index) => {
@@ -376,7 +474,6 @@
             });
         }
 
-        // Илк бор юкланганда маҳсулотларни экранга чиқариш
         renderProducts();
     </script>
 </body>
