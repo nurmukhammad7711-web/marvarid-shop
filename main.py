@@ -98,7 +98,8 @@ def handle_start(message):
     role = get_user_role(uid)
     
     if not role:
-        bot.send_message(message.chat.id, "Assalomu alaykum! Siz \"Marvarid\" do'koni botidasiz.", 
+        # ДИҚҚАТ: Шу ерга ID рақамни кўрсатиш коди қўшилди
+        bot.send_message(message.chat.id, f"Assalomu alaykum! Siz \"Marvarid\" do'koni botidasiz.\n\n⚙️ Admin uchun ma'lumot: Sizning Telegram ID raqamingiz: {uid}", 
                      reply_markup=types.InlineKeyboardMarkup().add(
                          types.InlineKeyboardButton("🛒 Do'konni ochish", web_app=types.WebAppInfo(url="https://marvarid-shop.onrender.com"))
                      ))
